@@ -1,0 +1,7 @@
+from setuptools import setup
+
+setup(name='nbpyhelp',
+      version='0.1',
+      description='A collection of helper functions for python',
+      url='
+      
