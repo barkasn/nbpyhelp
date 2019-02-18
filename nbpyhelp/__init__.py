@@ -63,8 +63,29 @@ def countge(input_bam,verbose):
     samfile.close()
     ## Print output
     print('Done: With tag/without/total: {}/{}/{}'.format(readCountWithTag,totalReadCount - readCountWithTag,totalReadCount))
+    
+@click.command()
+@click.option('--input-bam',help='input bam file')
+@click.option('--output-bam',help='output bam file')
+@click.option('--strip-tag',help='name of tag to strip')
+@click.option('--verbose',help='verbose',default=False,is_flag=True,flag_value=True)
+def striptag(input_bam,output_bam,strip_tag,verbose):
+    """Strips the selected tag from all reads in the input bam file"""
+    import pysam
+    inputsam=pysam.AlignmentFile(input_bam,'rb')
+    outputsam=pysam.AlignmentFile(output_bam,'wb',template=inputsam)
+    totalReadCount=0;
+    for read in inputsam:
+        totalReadCount+=1;
+        read.set_tag(strip_tag,None)
+        outputsam.write(read)
+        if(verbose and totalReadCount % 1e5 == 0):
+            print('Processed {} reads'.format(totalReadCount));
+    outputsam.close();
+    inputsam.close();
         
 ## Cli bindings
 cli.add_command(sam)
 sam.add_command(umistats)
 sam.add_command(countge)
+sam.add_command(striptag)
