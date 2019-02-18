@@ -20,6 +20,7 @@ def umistats(input_bam, out_corrected, verbose):
     inputbam_handle = pysam.AlignmentFile(input_bam,'rb')
     correctedCount=0;
     totalCount=0;
+    ## Loop over all the reads and check if UR and UB tags match
     for read in inputbam_handle:
         totalCount+=1
         UR=read.get_tag('UR');
@@ -28,17 +29,42 @@ def umistats(input_bam, out_corrected, verbose):
             correctedCount+=1;
             if (out_corrected):
                 outinfo_file.write('{}\t{}:{}-{}\t\n'.format(read.query_name, read.reference_name,read.reference_start,read.reference_end));
+        ## Optionally print a message every 100k reads
         if(verbose):
             if(totalCount%100000==0):
                 print('Processed {} reads'.format(totalCount));
+    ## Print Output statics
     print('Done: {} of {} reads were corrected'.format(correctedCount,totalCount));
     ## Close the input bam file
     inputbam_handle.close();
     if(out_corrected):
         outinfo_file.close();
 
+@click.command()
+@click.option('--input-bam',help='input bam file')
+@click.option('--verbose',default=False,is_flag=True,flag_value=True)
+def countge(input_bam,verbose):
+    """Counts number of reads with GE tag in the input bam file"""
+    import pysam
+    samfile=pysam.AlignmentFile(input_bam,'rb')
+    ## Counters
+    totalReadCount=0
+    readCountWithTag=0
+    ## Go over all reads
+    for read in samfile:
+        totalReadCount+=1
+        if(verbose and totalReadCount % 1e5 == 0):
+            print('Processed {} reads'.format(totalReadCount));
+        try:
+            gene = read.get_tag('GE');
+            readCountWithTag+=1;
+        except KeyError:
+            pass
+    samfile.close()
+    ## Print output
+    print('Done: With tag/without/total: {}/{}/{}'.format(readCountWithTag,totalReadCount - readCountWithTag,totalReadCount))
+        
 ## Cli bindings
 cli.add_command(sam)
 sam.add_command(umistats)
-
-
+sam.add_command(countge)
