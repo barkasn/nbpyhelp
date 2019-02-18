@@ -18,6 +18,7 @@ setup(
     install_requires=[
         'pysam',
         'click',
+        'biopython',
     ],
     entry_points='''
         [console_scripts]
